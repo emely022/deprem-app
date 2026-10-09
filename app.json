@@ -17,8 +17,16 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
+    "scheme": "deprem-app",
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
