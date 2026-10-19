@@ -86,7 +86,16 @@ export const EarthquakeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      const res: FetchResult = await fetchCombinedEarthquakes();
+      const res: FetchResult = await fetchCombinedEarthquakes((partialList) => {
+        // Immediate display: As soon as the fastest API responds (<200ms), show data and dismiss spinner!
+        setEarthquakes((prev) => {
+          if (prev.length === 0 && partialList.length > 0) {
+            setLoading(false);
+            return partialList;
+          }
+          return prev;
+        });
+      });
       setEarthquakes(res.earthquakes);
       setStats({
         totalUSGS: res.totalUSGS,

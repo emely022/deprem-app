@@ -5,10 +5,35 @@ import {
 } from '../types/earthquake';
 import { detectCountry } from '../utils/countryDetector';
 
+// USGS real-time CDN feed: updated every minute, served globally via Akamai CDN (<200ms latency)
 const USGS_URL =
-  'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=200&orderby=time';
+  'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
+
+// EMSC real-time seismic portal query (optimized to limit=150 for fast response)
 const EMSC_URL =
-  'https://www.seismicportal.eu/fdsnws/event/1/query?format=json&limit=200&orderby=time';
+  'https://www.seismicportal.eu/fdsnws/event/1/query?format=json&limit=150&orderby=time';
+
+const REQUEST_TIMEOUT_MS = 6000;
+
+/**
+ * Fetch wrapper with timeout using AbortController to prevent network hangs.
+ */
+async function fetchWithTimeout(url: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Calculates distance in kilometers between two latitude/longitude points
@@ -34,14 +59,12 @@ export function calculateDistanceKm(
 }
 
 /**
- * Fetches earthquakes from USGS API.
+ * Fetches earthquakes from USGS real-time CDN feed.
  */
 export async function fetchUSGS(): Promise<Earthquake[]> {
-  const res = await fetch(USGS_URL, {
-    headers: { Accept: 'application/json' },
-  });
+  const res = await fetchWithTimeout(USGS_URL);
   if (!res.ok) {
-    throw new Error(`USGS HTTP Error: ${res.status}`);
+    throw new Error(`USGS HTTP Hatası: ${res.status}`);
   }
   const data: USGSFeatureCollection = await res.json();
   if (!data.features || !Array.isArray(data.features)) {
@@ -74,14 +97,12 @@ export async function fetchUSGS(): Promise<Earthquake[]> {
 }
 
 /**
- * Fetches earthquakes from EMSC API.
+ * Fetches earthquakes from EMSC API with timeout.
  */
 export async function fetchEMSC(): Promise<Earthquake[]> {
-  const res = await fetch(EMSC_URL, {
-    headers: { Accept: 'application/json' },
-  });
+  const res = await fetchWithTimeout(EMSC_URL);
   if (!res.ok) {
-    throw new Error(`EMSC HTTP Error: ${res.status}`);
+    throw new Error(`EMSC HTTP Hatası: ${res.status}`);
   }
   const data: EMSCFeatureCollection = await res.json();
   if (!data.features || !Array.isArray(data.features)) {
@@ -116,17 +137,12 @@ export async function fetchEMSC(): Promise<Earthquake[]> {
 
 /**
  * Merges and deduplicates earthquake lists from USGS and EMSC.
- * Two events are deemed duplicates if:
- * - Time difference <= 120 seconds (2 minutes)
- * - Distance <= 120 km
- * - Magnitude difference <= 0.8
  */
 export function deduplicateEarthquakes(
   list1: Earthquake[],
   list2: Earthquake[]
 ): Earthquake[] {
   const allEvents = [...list1, ...list2];
-  // Sort descending by time initially
   allEvents.sort((a, b) => b.time - a.time);
 
   const merged: Earthquake[] = [];
@@ -138,13 +154,11 @@ export function deduplicateEarthquakes(
 
     let matchedItem: Earthquake | null = null;
 
-    // Look for matching duplicates in remaining items
     for (let j = i + 1; j < allEvents.length; j++) {
       const candidate = allEvents[j];
       if (visited.has(candidate.id)) continue;
 
       const timeDiff = Math.abs(item.time - candidate.time);
-      // Beyond 3 minutes, since sorted by time, break early optimization
       if (timeDiff > 180_000) {
         break;
       }
@@ -170,12 +184,9 @@ export function deduplicateEarthquakes(
     visited.add(item.id);
 
     if (matchedItem) {
-      // Create unified earthquake record combining best details
       const usgsPart = item.source === 'USGS' ? item : matchedItem.source === 'USGS' ? matchedItem : null;
       const emscPart = item.source === 'EMSC' ? item : matchedItem.source === 'EMSC' ? matchedItem : null;
 
-      // Prefer USGS place string if it includes local landmark details (e.g. "12 km SW of...")
-      // otherwise use whatever is more descriptive
       let bestPlace = item.place;
       if (usgsPart?.place && usgsPart.place.length > 5) {
         bestPlace = usgsPart.place;
@@ -198,7 +209,7 @@ export function deduplicateEarthquakes(
         place: bestPlace,
         country: bestCountry.name,
         flagEmoji: bestCountry.flag,
-        time: Math.min(item.time, matchedItem.time), // Earliest reported origin time
+        time: Math.min(item.time, matchedItem.time),
         latitude: Math.round(((item.latitude + matchedItem.latitude) / 2) * 1000) / 1000,
         longitude: Math.round(((item.longitude + matchedItem.longitude) / 2) * 1000) / 1000,
         depth: Math.round(((item.depth + matchedItem.depth) / 2) * 10) / 10,
@@ -209,7 +220,6 @@ export function deduplicateEarthquakes(
     }
   }
 
-  // Sort descending by time (newest first)
   merged.sort((a, b) => b.time - a.time);
   return merged;
 }
@@ -223,27 +233,40 @@ export interface FetchResult {
 }
 
 /**
- * Fetches from both USGS and EMSC in parallel, deduplicates and returns results.
+ * Fetches from both USGS and EMSC in parallel.
+ * Supports progressive callback `onProgress` so the UI receives and displays
+ * the first responding API immediately (e.g. USGS in <200ms) without waiting!
  */
-export async function fetchCombinedEarthquakes(): Promise<FetchResult> {
+export async function fetchCombinedEarthquakes(
+  onProgress?: (partial: Earthquake[]) => void
+): Promise<FetchResult> {
   const errors: string[] = [];
   let usgsList: Earthquake[] = [];
   let emscList: Earthquake[] = [];
 
-  const [usgsRes, emscRes] = await Promise.allSettled([
-    fetchUSGS(),
-    fetchEMSC(),
-  ]);
+  const usgsPromise = fetchUSGS().then((list) => {
+    usgsList = list;
+    if (onProgress && list.length > 0) {
+      onProgress(list);
+    }
+    return list;
+  });
 
-  if (usgsRes.status === 'fulfilled') {
-    usgsList = usgsRes.value;
-  } else {
+  const emscPromise = fetchEMSC().then((list) => {
+    emscList = list;
+    if (onProgress && list.length > 0 && usgsList.length === 0) {
+      onProgress(list);
+    }
+    return list;
+  });
+
+  const [usgsRes, emscRes] = await Promise.allSettled([usgsPromise, emscPromise]);
+
+  if (usgsRes.status === 'rejected') {
     errors.push(`USGS: ${usgsRes.reason?.message || 'Erişilemedi'}`);
   }
 
-  if (emscRes.status === 'fulfilled') {
-    emscList = emscRes.value;
-  } else {
+  if (emscRes.status === 'rejected') {
     errors.push(`EMSC: ${emscRes.reason?.message || 'Erişilemedi'}`);
   }
 
