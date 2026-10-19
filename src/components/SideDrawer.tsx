@@ -7,24 +7,16 @@ import {
   Pressable,
   Animated,
   Dimensions,
-  Linking,
   ScrollView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDrawer } from '../context/DrawerContext';
 
-const DRAWER_WIDTH = Math.min(Dimensions.get('window').width * 0.82, 340);
+const DRAWER_WIDTH = Math.min(Dimensions.get('window').width * 0.8, 330);
 
 export const SideDrawer: React.FC = () => {
-  const {
-    isDrawerOpen,
-    closeDrawer,
-    openFirstAid,
-    openWhistle,
-    openChecklist,
-    openNumbers,
-  } = useDrawer();
+  const { isDrawerOpen, closeDrawer, openFirstAid } = useDrawer();
 
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -34,12 +26,12 @@ export const SideDrawer: React.FC = () => {
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 260,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 260,
+          duration: 250,
           useNativeDriver: true,
         }),
       ]).start();
@@ -47,12 +39,12 @@ export const SideDrawer: React.FC = () => {
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: -DRAWER_WIDTH,
-          duration: 220,
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 220,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -61,8 +53,8 @@ export const SideDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
-  const handleCall112 = () => {
-    Linking.openURL('tel:112').catch(() => {});
+  const handleOpenGuide = () => {
+    openFirstAid();
   };
 
   return (
@@ -74,9 +66,7 @@ export const SideDrawer: React.FC = () => {
     >
       <View style={styles.overlayContainer}>
         {/* Backdrop Scrim */}
-        <Animated.View
-          style={[styles.backdrop, { opacity: fadeAnim }]}
-        >
+        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
           <Pressable style={styles.backdropPressable} onPress={closeDrawer} />
         </Animated.View>
 
@@ -92,7 +82,7 @@ export const SideDrawer: React.FC = () => {
             contentContainerStyle={styles.drawerContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header Profile / App Branding */}
+            {/* Header / App Branding */}
             <View style={styles.drawerHeader}>
               <View style={styles.headerTop}>
                 <View style={styles.logoBadge}>
@@ -107,72 +97,31 @@ export const SideDrawer: React.FC = () => {
                 </Pressable>
               </View>
 
-              <Text style={styles.appName}>Deprem Takip & Güvenlik</Text>
-              <Text style={styles.appSubtitle}>Afet & Acil Durum Merkezi</Text>
+              <Text style={styles.appName}>Deprem Takibi</Text>
+              <Text style={styles.appSubtitle}>Menü & Güvenlik</Text>
 
               <View style={styles.offlineStatusCard}>
                 <View style={styles.onlineDot} />
                 <Text style={styles.offlineStatusText}>
-                  Çevrimdışı Kılavuz ve Araçlar Hazır
+                  Çevrimdışı Kılavuz Hazır
                 </Text>
               </View>
             </View>
 
-            {/* Quick Emergency Action Banner */}
-            <View style={styles.emergencyCard}>
-              <View style={styles.emergencyCardHeader}>
-                <View style={styles.emergencyPulseIcon}>
-                  <Ionicons name="warning" size={18} color="#FFFFFF" />
-                </View>
-                <Text style={styles.emergencyCardTitle}>Acil Durum Hızlı Eylemler</Text>
-              </View>
-
-              <View style={styles.emergencyButtonsRow}>
-                {/* S.O.S Whistle button */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.sosButton,
-                    pressed && styles.buttonPressed,
-                  ]}
-                  onPress={openWhistle}
-                >
-                  <Ionicons name="megaphone" size={18} color="#FFFFFF" />
-                  <Text style={styles.sosButtonText}>S.O.S Düdük</Text>
-                </Pressable>
-
-                {/* 112 Direct Call button */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.call112Button,
-                    pressed && styles.buttonPressed,
-                  ]}
-                  onPress={handleCall112}
-                >
-                  <Ionicons name="call" size={18} color="#FFFFFF" />
-                  <Text style={styles.call112ButtonText}>112 Acil</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            {/* Section: Afet & İlk Yardım Araçları */}
+            {/* Menu Section */}
             <View style={styles.menuSection}>
-              <Text style={styles.sectionTitle}>GÜVENLİK & İLK YARDIM</Text>
+              <Text style={styles.sectionTitle}>GÜVENLİK REHBERİ</Text>
 
-              {/* 1. Depremzede İlk Yardım Rehberi */}
+              {/* Depremzede İlk Yardım Rehberi */}
               <Pressable
                 style={({ pressed }) => [
                   styles.menuItem,
                   pressed && styles.menuItemPressed,
                 ]}
-                onPress={() => openFirstAid()}
+                onPress={handleOpenGuide}
               >
-                <View
-                  style={[
-                    styles.menuItemIconBox,
-                    { backgroundColor: '#FEE2E2' },
-                  ]}
-                >
-                  <Ionicons name="medkit" size={20} color="#DC2626" />
+                <View style={styles.menuItemIconBox}>
+                  <Ionicons name="medkit" size={22} color="#DC2626" />
                 </View>
                 <View style={styles.menuItemBody}>
                   <View style={styles.menuItemTitleRow}>
@@ -184,117 +133,26 @@ export const SideDrawer: React.FC = () => {
                     </View>
                   </View>
                   <Text style={styles.menuItemSubtitle}>
-                    Enkaz, Crush sendromu, kanamalar, kırıklar
+                    Duruma göre yönlendirme ve acil adımlar
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
-              </Pressable>
-
-              {/* 2. Acil Durum Düdüğü */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.menuItem,
-                  pressed && styles.menuItemPressed,
-                ]}
-                onPress={openWhistle}
-              >
-                <View
-                  style={[
-                    styles.menuItemIconBox,
-                    { backgroundColor: '#FEF3C7' },
-                  ]}
-                >
-                  <Ionicons name="volume-high" size={20} color="#D97706" />
-                </View>
-                <View style={styles.menuItemBody}>
-                  <View style={styles.menuItemTitleRow}>
-                    <Text style={styles.menuItemTitle}>
-                      Acil Durum Düdüğü (S.O.S)
-                    </Text>
-                    <View style={styles.badgeWarning}>
-                      <Text style={styles.badgeWarningText}>Sesli / Flaş</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.menuItemSubtitle}>
-                    Enkaz altında ses duyurma ve flaşör
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
-              </Pressable>
-
-              {/* 3. Afet Çantası Kontrol Listesi */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.menuItem,
-                  pressed && styles.menuItemPressed,
-                ]}
-                onPress={openChecklist}
-              >
-                <View
-                  style={[
-                    styles.menuItemIconBox,
-                    { backgroundColor: '#EFF6FF' },
-                  ]}
-                >
-                  <Ionicons name="briefcase" size={20} color="#2563EB" />
-                </View>
-                <View style={styles.menuItemBody}>
-                  <View style={styles.menuItemTitleRow}>
-                    <Text style={styles.menuItemTitle}>
-                      Deprem Çantası Listesi
-                    </Text>
-                    <View style={styles.badgePrimary}>
-                      <Text style={styles.badgePrimaryText}>72 Saat</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.menuItemSubtitle}>
-                    Zorunlu gıda, su ve hayatta kalma araçları
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
-              </Pressable>
-
-              {/* 4. Acil Durum Numaraları */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.menuItem,
-                  pressed && styles.menuItemPressed,
-                ]}
-                onPress={openNumbers}
-              >
-                <View
-                  style={[
-                    styles.menuItemIconBox,
-                    { backgroundColor: '#DCFCE7' },
-                  ]}
-                >
-                  <Ionicons name="call" size={20} color="#16A34A" />
-                </View>
-                <View style={styles.menuItemBody}>
-                  <Text style={styles.menuItemTitle}>
-                    Acil Numaralar & Rehber
-                  </Text>
-                  <Text style={styles.menuItemSubtitle}>
-                    112, 122 AFAD, İtfaiye, Doğalgaz
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
+                <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
               </Pressable>
             </View>
 
-            {/* Extensible Future Items Notice */}
+            {/* Clean Future Expansion Notice */}
             <View style={styles.futureNotice}>
-              <Ionicons name="bulb-outline" size={16} color="#64748B" />
+              <Ionicons name="sparkles-outline" size={16} color="#64748B" />
               <Text style={styles.futureNoticeText}>
-                Yeni afet koruma araçları ve rehberler buraya eklenecektir.
+                İlerleyen adımlarda yeni araçlar ve özellikler bu menüye eklenecektir.
               </Text>
             </View>
           </ScrollView>
 
           {/* Drawer Footer */}
           <View style={styles.drawerFooter}>
-            <Text style={styles.footerBrand}>Deprem Güvenlik Sistemi</Text>
-            <Text style={styles.footerSub}>v1.0.0 • Çevrimdışı Acil Kılavuz</Text>
+            <Text style={styles.footerBrand}>Deprem Takip v1.0.0</Text>
+            <Text style={styles.footerSub}>Afet anında %100 çevrimdışı çalışır</Text>
           </View>
         </Animated.View>
       </View>
@@ -327,8 +185,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: { width: 4, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
     elevation: 16,
   },
   drawerScroll: {
@@ -406,79 +264,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#15803D',
   },
-  emergencyCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 14,
-    backgroundColor: '#FEF2F2',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-  },
-  emergencyCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  emergencyPulseIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#DC2626',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emergencyCardTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#991B1B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  emergencyButtonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  sosButton: {
-    flex: 1.2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#DC2626',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sosButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  call112Button: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#16A34A',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-  },
-  call112ButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  buttonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
-  },
   menuSection: {
     marginTop: 20,
     paddingHorizontal: 16,
@@ -494,22 +279,22 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    marginBottom: 6,
-    gap: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
+    gap: 12,
   },
   menuItemPressed: {
     backgroundColor: '#F8FAFC',
   },
   menuItemIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -529,7 +314,7 @@ const styles = StyleSheet.create({
   menuItemSubtitle: {
     fontSize: 11,
     color: '#64748B',
-    marginTop: 2,
+    marginTop: 3,
   },
   badgeDanger: {
     backgroundColor: '#FEE2E2',
@@ -542,34 +327,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#DC2626',
   },
-  badgeWarning: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  badgeWarningText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#B45309',
-  },
-  badgePrimary: {
-    backgroundColor: '#DBEAFE',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  badgePrimaryText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#1D4ED8',
-  },
   futureNotice: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     marginHorizontal: 16,
-    marginTop: 18,
+    marginTop: 20,
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
@@ -580,7 +343,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     color: '#64748B',
-    lineHeight: 15,
+    lineHeight: 16,
   },
   drawerFooter: {
     paddingHorizontal: 20,

@@ -6,22 +6,9 @@ import { EarthquakeProvider } from '../context/EarthquakeContext';
 import { DrawerProvider, useDrawer } from '../context/DrawerContext';
 import { SideDrawer } from '../components/SideDrawer';
 import { FirstAidGuideModal } from '../components/FirstAidGuideModal';
-import { EmergencyWhistleModal } from '../components/EmergencyWhistleModal';
 
 function AppContent() {
-  const { activeModal, selectedCategory, closeModal } = useDrawer();
-
-  const isFirstAidOpen =
-    activeModal === 'firstAid' ||
-    activeModal === 'checklist' ||
-    activeModal === 'numbers';
-
-  const initialCat =
-    activeModal === 'checklist'
-      ? 'checklist'
-      : activeModal === 'numbers'
-      ? 'numbers'
-      : selectedCategory;
+  const { isFirstAidOpen, closeFirstAid } = useDrawer();
 
   return (
     <>
@@ -33,17 +20,10 @@ function AppContent() {
       {/* Global Slide-In Drawer */}
       <SideDrawer />
 
-      {/* Offline First Aid & Emergency Checklist Modal */}
+      {/* Offline Situation-Based First Aid Guide Modal */}
       <FirstAidGuideModal
         visible={isFirstAidOpen}
-        initialCategory={initialCat}
-        onClose={closeModal}
-      />
-
-      {/* Emergency Audio & Visual Whistle / SOS Modal */}
-      <EmergencyWhistleModal
-        visible={activeModal === 'whistle'}
-        onClose={closeModal}
+        onClose={(reopenDrawer) => closeFirstAid(reopenDrawer)}
       />
     </>
   );

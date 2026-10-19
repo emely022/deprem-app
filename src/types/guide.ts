@@ -1,33 +1,32 @@
-export interface FirstAidStep {
+export type TextSizeOption = 'normal' | 'large' | 'xlarge';
+
+export interface GuideStep {
   stepNumber: number;
   title: string;
   description: string;
+  caution?: string;
 }
 
-export interface FirstAidArticle {
+export interface SituationCategory {
   id: string;
   title: string;
-  shortDescription: string;
+  subtitle: string;
   icon: string;
-  badge?: string;
-  criticalWarning?: string;
-  steps: FirstAidStep[];
-  tips?: string[];
-  category: 'rubble' | 'crush' | 'bleeding' | 'fracture' | 'hypothermia' | 'behavior' | 'checklist';
+  badge: string;
+  urgency: 'critical' | 'high' | 'standard';
+  criticalAlert?: string;
+  isCrushSyndromeSpecial?: boolean;
+  steps: GuideStep[];
+  donts?: string[];
+  citizenRole?: string[];
+  medicalRole?: string[];
 }
 
-export interface EmergencyNumber {
-  id: string;
-  name: string;
-  number: string;
-  description: string;
-  icon: string;
-}
-
-export interface ChecklistItem {
-  id: string;
-  title: string;
-  category: 'water_food' | 'health' | 'tools' | 'documents';
-  description: string;
-  essential: boolean;
+export interface GuideMetadata {
+  medicalReviewer: string;
+  reviewStatus: string;
+  sources: string[];
+  lastUpdated: string;
+  version: string;
+  offlineNote: string;
 }

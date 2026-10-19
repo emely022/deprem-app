@@ -1,56 +1,35 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type ActiveModal = 'none' | 'firstAid' | 'whistle' | 'checklist' | 'numbers';
-
 interface DrawerContextValue {
   isDrawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;
-  activeModal: ActiveModal;
-  selectedCategory: string | null;
-  openFirstAid: (category?: string) => void;
-  openWhistle: () => void;
-  openChecklist: () => void;
-  openNumbers: () => void;
-  closeModal: () => void;
+  isFirstAidOpen: boolean;
+  openFirstAid: () => void;
+  closeFirstAid: (reopenDrawer?: boolean) => void;
 }
 
 const DrawerContext = createContext<DrawerContextValue | undefined>(undefined);
 
 export const DrawerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeModal, setActiveModal] = useState<ActiveModal>('none');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isFirstAidOpen, setIsFirstAidOpen] = useState(false);
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
 
-  const openFirstAid = (category?: string) => {
-    setSelectedCategory(category || null);
-    setActiveModal('firstAid');
+  const openFirstAid = () => {
+    setIsFirstAidOpen(true);
     setIsDrawerOpen(false);
   };
 
-  const openWhistle = () => {
-    setActiveModal('whistle');
-    setIsDrawerOpen(false);
-  };
-
-  const openChecklist = () => {
-    setActiveModal('checklist');
-    setIsDrawerOpen(false);
-  };
-
-  const openNumbers = () => {
-    setActiveModal('numbers');
-    setIsDrawerOpen(false);
-  };
-
-  const closeModal = () => {
-    setActiveModal('none');
-    setSelectedCategory(null);
+  const closeFirstAid = (reopenDrawer = false) => {
+    setIsFirstAidOpen(false);
+    if (reopenDrawer) {
+      setIsDrawerOpen(true);
+    }
   };
 
   return (
@@ -60,13 +39,9 @@ export const DrawerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         openDrawer,
         closeDrawer,
         toggleDrawer,
-        activeModal,
-        selectedCategory,
+        isFirstAidOpen,
         openFirstAid,
-        openWhistle,
-        openChecklist,
-        openNumbers,
-        closeModal,
+        closeFirstAid,
       }}
     >
       {children}

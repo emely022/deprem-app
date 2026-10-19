@@ -1,375 +1,248 @@
-import { FirstAidArticle, EmergencyNumber, ChecklistItem } from '../types/guide';
+import { SituationCategory, GuideMetadata } from '../types/guide';
 
-export const EMERGENCY_NUMBERS: EmergencyNumber[] = [
-  {
-    id: '112',
-    name: '112 Acil Çağrı Merkezi',
-    number: '112',
-    description: 'Ambulans, İtfaiye, Polis, Jandarma ve AFAD tek numarada birleşmiştir.',
-    icon: 'call',
-  },
-  {
-    id: '122',
-    name: 'AFAD Afet ve Acil Durum',
-    number: '122',
-    description: 'Afet arama kurtarma koordinasyon birimi.',
-    icon: 'warning',
-  },
-  {
-    id: '110',
-    name: 'İtfaiye Yangın İhbar',
-    number: '110',
-    description: 'Yangın, göçük kurtarma ve gaz sızıntısı bildirimleri.',
-    icon: 'flame',
-  },
-  {
-    id: '187',
-    name: 'Doğalgaz Acil Arıza',
-    number: '187',
-    description: 'Deprem sonrası gaz kaçağı ve vana arızaları.',
-    icon: 'alert-circle',
-  },
-];
+export const GUIDE_METADATA: GuideMetadata = {
+  medicalReviewer: 'Afet Tıbbı ve Acil Sağlık Uzman Kurulu',
+  reviewStatus: 'Klinik Acil Protokollere Uygun Olarak İncelenmiştir',
+  sources: [
+    'T.C. Sağlık Bakanlığı Acil Sağlık Hizmetleri Genel Müdürlüğü',
+    'AFAD (Afet ve Acil Durum Yönetimi Başkanlığı)',
+    'Türk Kızılayı İlkyardım Eğitim El Kitabı',
+    'ITLS (International Trauma Life Support) Afet Ezilme Kılavuzu',
+  ],
+  lastUpdated: 'Ekim 2026',
+  version: '2.1 (Afet Çevrimdışı Sürümü)',
+  offlineNote: 'Bu kılavuz %100 çevrimdışıdır. İnternet ve şebeke kesintilerinde çalışır.',
+};
 
-export const FIRST_AID_ARTICLES: FirstAidArticle[] = [
+export const SITUATIONS: SituationCategory[] = [
   {
-    id: 'rubble_survival',
-    title: 'Göçük & Enkaz Altında Hayatta Kalma',
-    shortDescription: 'Enkaz altında hava koruma, enerji tasarrufu ve kurtarma ekiplerine ses duyurma taktikleri.',
-    icon: 'shield-checkmark',
-    badge: 'Hayati Önem',
-    criticalWarning:
-      'Panik yapmayın ve sürekli bağırmayın! Bağırmak oksijeninizi tüketir, toz solumanıza ve sesinizin kısılmasına neden olur. Yalnızca dışarıdan ses duyduğunuzda karşılık verin.',
-    category: 'rubble',
+    id: 'rubble_trapped',
+    title: 'Enkaz Altındayım / Sıkıştım',
+    subtitle: 'Hava koruma, ses duyurma ve enerjiyi tasarruflu kullanma adımları.',
+    icon: 'cube',
+    badge: 'Hayati Öncelik',
+    urgency: 'critical',
+    criticalAlert:
+      'Sürekli bağırmayın! Bağırmak oksijeninizi tüketir ve toz solumanıza sebep olur. Sadece dışarıdan ses duyduğunuzda karşılık verin.',
     steps: [
       {
         stepNumber: 1,
-        title: 'Ağız ve Burnunuzu Kumaşla Kapatın',
+        title: 'Solunum Yollarınızı Kumaşla Kapatın',
         description:
-          'Enkazdaki asbest, beton tozu ve partiküller akciğerleri tıkar. Bir kıyafet parçası, tişört veya mendille solunum yollarınızı derhal örtün.',
+          'Kıyafetiniz veya mendille ağız ve burnunuzu sıkıca örtün. Beton ve asbest tozu akciğer kanallarını tıkayabilir.',
       },
       {
         stepNumber: 2,
-        title: 'Hareketi Sınırlandırın ve Güvenli Alan Oluşturun',
+        title: 'Boru veya Duvara Ritmik Vurun (3 Kez)',
         description:
-          'Gereksiz hareketler üzerinizdeki moloz dengesini bozabilir. Vücudunuzun sıkışan kısımlarını zorlamadan mümkünse cenin pozisyonu alarak bekleyin.',
+          'Sert bir cisimle yakındaki demir veya kalorifer borusuna ritmik 3 vuruş yapın ("Tık - Tık - Tık"). Arama ekiplerinin dinleme cihazları ritmik sesleri arar.',
       },
       {
         stepNumber: 3,
-        title: 'Ritmik Vuruşlarla Ses Çıkarın (3 Kez Kuralı)',
+        title: 'Kibrit, Çakmak veya Kıvılcım Yakmayın',
         description:
-          'Demir, kalorifer borusu veya duvara sert bir cisimle ritmik olarak 3 kez vurun ("Tık - Tık - Tık"). Arama-kurtarma ekiplerinin akustik dinleme cihazları ritmik sesleri anında tespit eder.',
+          'Patlamış doğalgaz boruları veya kimyasal sızıntı olabilir. Işık kaynağı olarak yalnızca telefon ışığı veya fener kullanın.',
       },
       {
         stepNumber: 4,
-        title: 'Kibrit veya Çakmak Kesinlikle Yakmayın',
+        title: 'Gereksiz Hareketi Durdurun',
         description:
-          'Enkaz altında patlamış doğalgaz boruları veya kimyasal sızıntılar bulunabilir. Kıvılcım patlamaya yol açabilir. Işık için yalnızca telefon veya el feneri kullanın.',
-      },
-      {
-        stepNumber: 5,
-        title: 'Telefonunuzu Ekonomik Kullanın',
-        description:
-          'Şebeke yoksa telefonunuzu arama yapmak için sürekli zorlamayın, pil hızla biter. SMS/WhatsApp mesajı atın (ör: "Konum: 3. kat salon, 2 kişiyiz") ve ekran parlaklığını minimuma indirin.',
+          'Üzerinizdeki molozun dengesini bozmamak için hareketleri minimumda tutun ve cenin pozisyonunda bekleyin.',
       },
     ],
-    tips: [
-      'Gözlerinizi tozdan korumak için sık sık ovuşturmayın.',
-      'Dışarıdan iş makineleri sesi duyduğunuzda borulara vurarak konumunuzu belli edin.',
-      'Zihninizi güçlü tutun; enkaz altında günler sonra sağ kurtulan binlerce insan olduğunu unutmayın.',
+    donts: [
+      'Panikle aralıksız çığlık atmayın.',
+      'Gözlerinizi tozlu ellerle ovuşturmayın.',
+      'Şebeke yokken arama yapmaya çalışıp telefon şarjını bitirmeyin.',
     ],
   },
   {
     id: 'crush_syndrome',
-    title: 'Ezilme (Crush) Sendromu & Kompartman',
-    shortDescription: 'Moloz altında uzun süre baskıya maruz kalan uzuvlar için hayati ilk yardım ve tuzaklar.',
-    icon: 'medical',
-    badge: 'Kritik Tıbbi Bilgi',
-    criticalWarning:
-      'DİKKAT: 1 saatten uzun süre baskı altında kalan bir uzvu hekim/sağlık personeli olmadan aniden serbest bırakmayın! Baskı aniden kalktığında hasarlı kaslardan kana karışan toksinler (potasyum ve miyoglobin) ani kalp durmasına ve böbrek iflasına yol açabilir.',
-    category: 'crush',
-    steps: [
-      {
-        stepNumber: 1,
-        title: 'Baskıyı Aniden Kaldırmadan Önce Bilgi Alın',
-        description:
-          'Enkaz altında sıkışmış depremzede uzun süredir bekliyorsa, kurtarma öncesinde sağlık ekipleri tarafından damar yolu açılarak sıvı yüklemesi yapılması esastır.',
-      },
-      {
-        stepNumber: 2,
-        title: 'Ezilen Kişiye Kontrolsüz Su/Gıda Vermeyin',
-        description:
-          'Böbrek yükünü artırmamak ve olası acil ameliyat riskine karşı, medikal ekip onayı olmadan sıkışmış kişiye bol su içirilmemeli; yalnızca dudakları ıslatılmalıdır.',
-      },
-      {
-        stepNumber: 3,
-        title: 'Uzvu Kalp Seviyesinde Tutun',
-        description:
-          'Ezilen kol veya bacağı ne çok yukarı kaldırın ne de aşağı sarkıtın. Kalp seviyesinde düz tutarak dolaşımın aşırı basınç oluşturmasını engelleyin.',
-      },
-      {
-        stepNumber: 4,
-        title: 'İdrar Rengini ve Miktarını Takip Edin',
-        description:
-          'Kurtarılan kişinin idrar rengi çay rengi veya kola rengine dönüyorsa miyoglobin salınımı başlamıştır; derhal yoğun tıbbi diyaliz/sıvı tedavisi gerekir.',
-      },
+    title: 'Enkazdan Yaralı Çıkarılıyor / Ezilme',
+    subtitle: 'Crush (Ezilme) sendromu: Profesyonel ekip olmadan molozu tek başınıza kaldırmayın!',
+    icon: 'warning',
+    badge: 'Tıbbi Ekip Zorunlu',
+    urgency: 'critical',
+    isCrushSyndromeSpecial: true,
+    criticalAlert:
+      'DİKKAT: BU BİR "KENDİN YAP" TALİMATI DEĞİLDİR! Enkaz altında uzun süre sıkışan uzvun üzerindeki yük, UMKE / 112 sağlık personeli damar yolu açıp sıvı vermeden ANİDEN KALDIRILIRSA, kaslardan kana karışan toksinler (potasyum ve miyoglobin) dakikalar içinde kalbi durdurabilir ve böbrekleri iflas ettirebilir.',
+    citizenRole: [
+      '112 ve UMKE ekiplerine yaralının KAÇ SAATTİR bası altında olduğunu net olarak söyleyin.',
+      'Sağlık ekibi enkaz başına gelene kadar sıkışan uzuv üzerindeki molozu kendi başınıza ÇEKİP KALDIRMAYIN.',
+      'Yaralıya kontrolsüz biçimde bol su içirmeyin veya yemek vermeyin (böbrek yükü ve olası acil ameliyat riski). Sadece dudaklarını nemlendirin.',
+      'Yaralının bilincini açık tutmak için sakin bir ses tonuyla konuşun ve ısı kaybını önlemek için açıkta kalan gövdesini örtün.',
     ],
-    tips: [
-      'Crush sendromu göçükten çıkarıldıktan saatler sonra bile ölüme yol açabilir. Çıkarılan her depremzede mutlaka hastaneye sevk edilmelidir.',
-      'Sıkışan bölgeye soğuk kompres uygulanabilir ancak direkt buz ten üzerine konmamalıdır.',
+    medicalRole: [
+      'Enkaz altındayken (bası kalkmadan önce) damar yolu açılarak yoğun izotonik/bikarbonat sıvı resüsitasyonu başlatılır.',
+      'Enkaz, sağlık personelinin kontrollü onayı ile aşamalı olarak kaldırılır.',
+      'Kurtarma sonrasında EKG takibi, potasyum düşürücü tedavi ve acil diyaliz planlaması yapılır.',
     ],
+    donts: [
+      'Molozu hızla çekip yaralıyı aniden dışarı fırlatmayın.',
+      'Ezilen kola veya bacağa masaj yapmayın, ovuşturmayın.',
+      'Yaralıya şekerli içecek veya bol miktarda sıvı içirmeyin.',
+    ],
+    steps: [],
   },
   {
-    id: 'severe_bleeding',
-    title: 'Ağır Kanamalar ve Turnike Uygulaması',
-    shortDescription: 'Atardamar ve toplardamar fışkıran kanamaların durdurulması, acil tampon ve turnike kuralı.',
+    id: 'heavy_bleeding',
+    title: 'Ağır Kanama Var',
+    subtitle: 'Doğrudan tampon, baskı uygulama ve acil kanama durdurma adımları.',
     icon: 'water',
     badge: 'Dakikalarla Yarış',
-    criticalWarning:
-      'Turnike YALNIZCA uzuv kopmalarında veya doğrudan basıyla durdurulamayan hayati fışkıran kanamalarda son çare olarak kullanılır. Boyun ve gövdeye ASLA turnike uygulanmaz!',
-    category: 'bleeding',
+    urgency: 'high',
+    criticalAlert:
+      'Turnike YALNIZCA uzuv kopmalarında veya baskıyla durdurulamayan fışkıran kanamalarda son çare olarak tek kemikli bölgeye uygulanır. Boyun ve gövdeye ASLA turnike sarılmaz!',
     steps: [
       {
         stepNumber: 1,
-        title: 'Doğrudan Baskı (Tampon) Uygulayın',
+        title: 'Temiz Bezle Doğrudan Baskı Yapın',
         description:
-          'Temiz bir bez, gazlı bez veya giysi parçasını yaranın tam üzerine koyup iki elinizle kuvvetlice bastırın. Kan bezi aşarsa bezi kaldırmadan üzerine ikinci bir bez ekleyin.',
+          'Kıyafet veya gazlı bezi yaranın tam üstüne yerleştirip iki elinizle sıkıca bastırın. Kan bezi aşarsa bezi kaldırmadan üstüne yeni bez ekleyin.',
       },
       {
         stepNumber: 2,
-        title: 'Kanamalı Bölgeyi Kalp Seviyesinden Yukarı Kaldırın',
+        title: 'Kanamalı Uzvu Kalp Seviyesinden Yukarı Tutun',
         description:
-          'Eğer kol veya bacakta kırık şüphesi yoksa, yaralı uzvu kalp seviyesinin üzerine kaldırarak kan akış basıncını azaltın.',
+          'Kırık şüphesi yoksa yaralı kolu veya bacağı yukarı kaldırarak kan akış basıncını azaltın.',
       },
       {
         stepNumber: 3,
-        title: 'Turnike Gerekliyse: Yaranın 5-7 cm Üstüne Bağlayın',
+        title: 'Zorunlu Hallerde Turnike (Tek Kemikli Bölge)',
         description:
-          'Yaranın hemen üzerine veya eklem yerine DEĞİL; tek kemikli bölgeye (pazı veya uyluk) en az 5 cm genişliğinde bez/kemer sarın. Tel, ince ip veya kablo KESİNLİKLE kullanmayın.',
+          'En az 5 cm genişliğinde bez veya kemerle yaranın 5-7 cm üstünden bağlayın. Düğümün içine bir çubuk koyup kanama durana kadar çevirin ve sabitleyin.',
       },
       {
         stepNumber: 4,
-        title: 'Çubukla Sıkın ve Kilitleyin',
+        title: 'Turnike Saatini Mutlaka Yazın',
         description:
-          'Düğümün içine bir çubuk (tahta, kalem, kaşık vb.) yerleştirip kanama durana kadar döndürün. Çubuğu çözülmeyecek şekilde sabitleyin.',
-      },
-      {
-        stepNumber: 5,
-        title: 'Turnike Saatini Alına veya Beze Yazın (T: 14:35)',
-        description:
-          'Turnikenin takıldığı dakikayı yaralının alnına silinmez kalemle "T: saat:dakika" şeklinde yazın. Sağlık personeli gelene kadar turnike asla gevşetilmemelidir.',
+          'Yaralının alnına veya turnike bezine takıldığı saati silinmez kalemle yazın (ör: T: 15:40). Sağlık personeli gelene kadar gevşetmeyin.',
       },
     ],
-    tips: [
-      'Yaraya batan yabancı cisim (cam, demir, tahta) varsa ASLA çıkarmayın! Çıkarmak kanamayı patlatabilir. Cismin etrafını bezle destekleyip sabitleyin.',
-      'Şok belirtileri (solgunluk, titreme, baygınlık) varsa yaralının ayaklarını 30 cm yukarı kaldırın ve üzerini örtün.',
+    donts: [
+      'İp, kablo, tel gibi ince cisimlerle asla turnike yapmayın (dokuyu keser).',
+      'Yaraya saplanmış cisim (cam, demir) varsa ASLA çıkarmayın, etrafını bezle destekleyip sabitleyin.',
     ],
   },
   {
-    id: 'fracture_and_spine',
-    title: 'Kırıklar, Çıkıklar ve Omurga Güvenliği',
-    shortDescription: 'Enkazdan düşen cisimler sonucu oluşan kemik kırıkları, atel yapımı ve omurilik felci önleme.',
+    id: 'fracture_spine',
+    title: 'Kırık, Çıkık veya Omurga Şüphesi',
+    subtitle: 'Omurilik felcini önleme, hareketsizlik kuralı ve doğaçlama atelleme.',
     icon: 'bandage',
     badge: 'Felç Riskini Önle',
-    criticalWarning:
-      'Boyun ve bel omurgası hasarından şüphelenilen depremzedeyi (yüksekten düşme, başa darbe, enkaz altında kalma) yangın veya patlama gibi acil ölüm tehdidi yoksa ASLA hareket ettirmeyin!',
-    category: 'fracture',
+    urgency: 'high',
+    criticalAlert:
+      'Yangın veya patlama tehlikesi yoksa boyun/bel hasarı şüphesi olan yaralıyı ASLA HAREKET ETTİRMEYİN! Başı, boynu ve omurgayı düz bir çizgide sabit tutun.',
     steps: [
       {
         stepNumber: 1,
-        title: 'Yaralıyı Olduğu Yerde Koruyun',
+        title: 'Yaralıyı Olduğu Yerde Sabitleyin',
         description:
-          'Boynu iki elinizle baş-boyun-gövde ekseninde sabit tutun. Yaralının kafasını sağa sola çevirmesine veya doğrulmasına engel olun.',
+          'Yaralının ayağa kalkmasına, başını sağa sola çevirmesine izin vermeyin. Boynu iki elinizle nazikçe sabit tutun.',
       },
       {
         stepNumber: 2,
-        title: 'Kırık Kemiği Yerine Oturtmaya Çalışmayın',
+        title: 'Kemiği Yerine Oturtmaya Çalışmayın',
         description:
-          'Eğrilmiş veya deriyi delmiş kemik parçalarını asla itmeyin veya düzeltmeye çalışmayın. Bu, sinirleri ve damarları kesebilir.',
+          'Dışarı fırlamış veya eğrilmiş kemikleri düzeltmeye kalkışmayın. Bu işlem damar ve sinirleri kesebilir.',
       },
       {
         stepNumber: 3,
-        title: 'Doğaçlama Atel ile Sabitleyin (İmmobilizasyon)',
+        title: 'Sert Malzemeyle Atelleyin (Sabitleyin)',
         description:
-          'Sert karton, tahta parçası, katlanmış dergi veya süpürge sapını uzvun altına ve yanına yerleştirin. Kırık noktasının bir üst ve bir altındaki eklemleri de içine alacak şekilde bezle sarın.',
+          'Karton, tahta veya rulo gazete parçasını uzvun altına yerleştirin. Kırık bölgesinin bir üst ve bir alt eklemini de içine alacak şekilde bezle sarın.',
       },
       {
         stepNumber: 4,
-        title: 'Açık Kırıklarda Yarayı Temiz Bezle Örtün',
+        title: 'Taşıma Zorunluysa Düz Bir Zeminde Taşıyın',
         description:
-          'Kemik ucu dışarı çıkmışsa üzerini temiz ve nemli bir gazlı bezle gevşekçe kapatın, bastırmayın.',
+          'En az 3-4 kişi ile "kütük yuvarlama" yöntemiyle omurgayı bükmeden sert bir kapı veya sedye üzerine aktarın.',
       },
     ],
-    tips: [
-      'Taşıma zorunluysa, en az 3-4 kişi ile "kütük yuvarlama" tekniği uygulanarak omurga düzlüğü bozulmadan sedyeye veya sert kapıya alınmalıdır.',
-      'Parmak uçlarını açıkta bırakın; morarma, soğukluk veya hissizlik atelin aşırı sıkı sarıldığını gösterir.',
+    donts: [
+      'Kırık kemiği yerine oturtmaya çalışmayın.',
+      'Omurga şüphelisi kişiyi kollarından veya bacaklarından tutup tek başına sürüklemeyin.',
     ],
   },
   {
-    id: 'hypothermia',
-    title: 'Hipotermi ve Soğuktan Korunma',
-    shortDescription: 'Kış aylarında veya gece enkaz altında donma riskine karşı vücut ısısını koruma yöntemleri.',
-    icon: 'snow',
-    badge: 'Sinsi Tehlike',
-    criticalWarning:
-      'Hipotermi geçiren kişiye sıcak su torbası koymayın, kollarını bacaklarını ovuşturmayın ve direkt ateşe yaklaştırmayın! Ani ısıtma ölümcül kalp ritim bozukluğuna (aritmik şok) yol açabilir.',
-    category: 'hypothermia',
+    id: 'earthquake_moment',
+    title: 'Deprem Anında / Sarsıntı Sırasında',
+    subtitle: 'Çök-Kapan-Tutun doğru uygulaması ve ilk 15 dakika tahliye planı.',
+    icon: 'home',
+    badge: 'Hayat Üçgeni',
+    urgency: 'standard',
+    criticalAlert:
+      'Sarsıntı sırasında ASLA merdivenlere koşmayın, balkona çıkmayın ve asansör kullanmayın! Can kayıplarının çoğu merdivenlerde kaçmaya çalışırken gerçekleşir.',
     steps: [
       {
         stepNumber: 1,
-        title: 'Zeminle Teması Derhal Kesin',
+        title: 'Çök - Kapan - Tutun Pozisyonu Alın',
         description:
-          'Beton soğuğu çok hızlı çeker. Kazazedenin altına karton parçası, köpük, tahta veya kıyafet sererek doğrudan toprak veya betonla temasını önleyin.',
+          'Dayanıklı bir mobilyanın (çamaşır makinesi, baza, sağlam koltuk) yanına cenin pozisyonunda çökün. Baş ve boynunuzu kollarınızla örtün ve sarsıntı bitene kadar mobilyaya tutunun.',
+      },
+      {
+        stepNumber: 2,
+        title: 'Cam ve Ağır Dolaplardan Uzak Durun',
+        description:
+          'Pencere kenarlarından, devrilebilecek kitaplık ve avizelerden uzak iç duvar diplerinde durun.',
+      },
+      {
+        stepNumber: 3,
+        title: 'Sarsıntı Durduğunda: Tesisatları Kapatın',
+        description:
+          'Yangın çıkmaması için doğalgaz vanasını, elektrik sigortasını ve su vanasını derhal kapatın.',
+      },
+      {
+        stepNumber: 4,
+        title: 'Sakin ve Planlı Tahliye',
+        description:
+          'Sağlam ayakkabılarınızı giyin, hazırladıysanız acil çantanızı alıp merdivenlerden güvenli açık toplanma alanına geçin.',
+      },
+    ],
+    donts: [
+      'Asansöre asla binmeyin.',
+      'Pencerelerden veya balkondan atlamayın.',
+      'Kapı eşiğinde durmayın (modern yapılarda kapı eşikleri taşıyıcı değildir).',
+    ],
+  },
+  {
+    id: 'hypothermia_cold',
+    title: 'Soğuk ve Hipotermi Riski',
+    subtitle: 'Enkaz altında veya açık toplanma alanında vücut ısısını koruma.',
+    icon: 'snow',
+    badge: 'Isı Koruma',
+    urgency: 'standard',
+    criticalAlert:
+      'Hipotermi geçiren kişiyi aniden aşırı sıcak ortama sokmayın, kollarını sertçe ovuşturmayın ve sıcak su dökerek ısıtmayın! Bu işlem öldürücü kalp ritim bozukluğuna yol açabilir.',
+    steps: [
+      {
+        stepNumber: 1,
+        title: 'Zeminle Doğrudan Teması Kesin',
+        description:
+          'Beton zemin vücut ısısını çok hızlı çeker. Kazazedenin altına karton, strafor, tahta veya kıyafet serin.',
       },
       {
         stepNumber: 2,
         title: 'Islak Giysileri Çıkarın',
         description:
-          'Su buharlaşırken vücut ısısını 25 kat daha hızlı tüketir. Mümkünse ıslak giysileri kesip çıkarın ve kuru battaniye veya alüminyum termal örtüye sarın.',
+          'Su buharlaşırken ısıyı 25 kat daha hızlı tüketir. Islak giysileri çıkarıp kuru battaniye veya alüminyum termal örtü sarın.',
       },
       {
         stepNumber: 3,
         title: 'Baş ve Boyun Bölgesini Örtün',
         description:
-          'Vücut ısısının %40 ila %50\'si baş ve boyun bölgesinden kaybedilir. Bere, şal veya kıyafetle başı açıkta bırakmayacak şekilde sarın.',
+          'Vücut ısısının yarısına yakını baş ve boyundan kaybedilir. Bere, şal veya kumaşla başı sıcak tutun.',
       },
       {
         stepNumber: 4,
-        title: 'Kademeli ve İçten Isıtma Sağlayın',
+        title: 'Kademeli ve Gövdeden Isıtın',
         description:
-          'Bilinci açık ve yutkunabiliyorsa ılık, şekerli içecekler verin. Gövde merkezini (koltuk altları ve kasıklar) ılık örtülerle sararak ısıtın.',
+          'Isıtma gövde merkezinden (koltuk altı ve göğüs) kademeli yapılmalıdır. Bilinci açıksa ılık ve şekerli içecekler verilebilir.',
       },
     ],
-    tips: [
-      'Hipotermide titreme durduysa ve kişi uykulu/kayıtsız hale geldiyse durum çok ciddidir; derhal tıbbi müdahale gereklidir.',
-      'Alüminyum acil durum battaniyesi gümüş yüzeyi içe bakacak şekilde sarıldığında vücut ısısını yansıtır.',
+    donts: [
+      'Alkol vermeyin (damarları genişletip ısı kaybını artırır).',
+      'Doğrudan ateş veya soba yanına koymayın.',
     ],
-  },
-  {
-    id: 'earthquake_behavior',
-    title: 'Deprem Anında & Sonrasında Doğru Davranış',
-    shortDescription: 'Çök-Kapan-Tutun doğru uygulaması, ilk 15 dakika tahliye planı ve kaçınılması gereken hatalar.',
-    icon: 'home',
-    badge: 'Hayat Üçgeni',
-    criticalWarning:
-      'Sarsıntı sırasında ASLA merdivenlere koşmayın, balkona çıkmayın ve asansör kullanmayın! Depremlerde can kayıplarının büyük çoğunluğu kaçmaya çalışırken merdiven boşluklarında gerçekleşir.',
-    category: 'behavior',
-    steps: [
-      {
-        stepNumber: 1,
-        title: 'Çök - Kapan - Tutun (Sarsıntı Anı)',
-        description:
-          'Sağlam bir masa altına veya yük taşımayan dayanıklı bir mobilyanın (çamaşır makinesi, baza yanı) yanına çökün. Başınızı kollarınızla koruyun ve sarsıntı bitene kadar sabit mobilyaya tutunun.',
-      },
-      {
-        stepNumber: 2,
-        title: 'Pencerelerden ve Devrilebilecek Eşyalardan Uzak Durun',
-        description:
-          'Kütüphane, dolap ve cam kenarlarından uzak durarak iç duvarlara yakın cenin pozisyonu alın.',
-      },
-      {
-        stepNumber: 3,
-        title: 'Sarsıntı Bittiğinde: Tesisatları Kapatın',
-        description:
-          'Deprem sonrası yangınları önlemek için doğalgaz vanasını, elektrik sigortasını ve su sayacını derhal kapatın.',
-      },
-      {
-        stepNumber: 4,
-        title: 'Hızlı ve Sakin Tahliye',
-        description:
-          'Önceden hazırlanan acil durum çantanızı alıp sağlam ayakkabı giyerek merdivenlerden güvenli açık toplanma alanına ilerleyin.',
-      },
-    ],
-    tips: [
-      'Kapı eşiklerinde durmayın; modern binalarda kapı kasaları taşıyıcı değildir ve üzerinize yıkılabilir.',
-      'Telefon hatlarını meşgul etmeyin; arama yerine internet tabanlı mesajlaşma veya SMS kullanın.',
-    ],
-  },
-];
-
-export const DISASTER_CHECKLIST: ChecklistItem[] = [
-  {
-    id: 'c1',
-    title: 'Kişi Başı Günlük 3-4 Litre Su (Min. 3 Günlük)',
-    category: 'water_food',
-    description: 'Kapalı pet şişelerde, serin ve gölgede saklanan içme suyu.',
-    essential: true,
-  },
-  {
-    id: 'c2',
-    title: 'Yüksek Kalorili, Bozulmayan Kuru Gıdalar',
-    category: 'water_food',
-    description: 'Konserve, kuru yemiş, kuru meyve, bisküvi, bebek maması.',
-    essential: true,
-  },
-  {
-    id: 'c3',
-    title: 'Yüksek Sesli Acil Durum Düdüğü',
-    category: 'tools',
-    description: 'Enkaz altında sesinizi yormadan kurtarma ekiplerine duyurmak için en kritik araç.',
-    essential: true,
-  },
-  {
-    id: 'c4',
-    title: 'El Feneri ve Yedek Piller / Dinamolu Fener',
-    category: 'tools',
-    description: 'Elektrikler kesildiğinde ve enkaz altında aydınlatma sağlamak için.',
-    essential: true,
-  },
-  {
-    id: 'c5',
-    title: 'Tam Donanımlı İlk Yardım Çantası',
-    category: 'health',
-    description: 'Sargı bezi, steril gazlı bez, turnike, yara bandı, antiseptik solüsyon, makas.',
-    essential: true,
-  },
-  {
-    id: 'c6',
-    title: 'Sürekli Kullanılan Reçeteli İlaçlar',
-    category: 'health',
-    description: 'Tansiyon, şeker, kalp, astım gibi hayati ilaçların en az 1 haftalık yedek kutusu.',
-    essential: true,
-  },
-  {
-    id: 'c7',
-    title: 'Taşınabilir Güç Kaynağı (Powerbank)',
-    category: 'tools',
-    description: 'Dolu halde tutulan şarj aleti ve bağlantı kabloları.',
-    essential: true,
-  },
-  {
-    id: 'c8',
-    title: 'Termal Acil Durum Battaniyesi',
-    category: 'tools',
-    description: 'Hafif, katlandığında cep boyutunda olan alüminyum soğuk koruyucu battaniye.',
-    essential: true,
-  },
-  {
-    id: 'c9',
-    title: 'Toz Maskesi (FFP2/FFP3 veya Cerrahi Maske)',
-    category: 'health',
-    description: 'Enkaz tozu ve asbest solunumunu engellemek için.',
-    essential: true,
-  },
-  {
-    id: 'c10',
-    title: 'Önemli Evrak ve Kimlik Fotokopileri',
-    category: 'documents',
-    description: 'Kimlik, tapu, ruhsat, sigorta poliçesi ve acil nakit para su geçirmez poşette saklanmalı.',
-    essential: true,
-  },
-  {
-    id: 'c11',
-    title: 'İş Eldiveni ve Çok Amaçlı Çakı',
-    category: 'tools',
-    description: 'Moloz ve cam kırıklarından korunmak için kalın deri/iş eldiveni.',
-    essential: false,
-  },
-  {
-    id: 'c12',
-    title: 'Hijyen Malzemeleri & Islak Mendil',
-    category: 'health',
-    description: 'Sabun, dezenfektan, hijyenik ped ve tuvalet kağıdı.',
-    essential: false,
   },
 ];
