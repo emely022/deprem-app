@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,11 +6,14 @@ import {
   Modal,
   ScrollView,
   Pressable,
+  TextInput,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SITUATIONS, GUIDE_METADATA } from '../data/firstAidData';
 import { SituationCategory, TextSizeOption } from '../types/guide';
+import { normalizeForSearch } from '../utils/searchHelper';
+import { FirstAidIllustration } from './FirstAidIllustrations';
 
 interface Props {
   visible: boolean;
@@ -19,17 +22,17 @@ interface Props {
 
 export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
   const [selectedSituation, setSelectedSituation] = useState<SituationCategory | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [textSize, setTextSize] = useState<TextSizeOption>('normal');
-  const [highContrast, setHighContrast] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Reset state when closed
   React.useEffect(() => {
     if (!visible) {
       setSelectedSituation(null);
+      setSearchQuery('');
     }
   }, [visible]);
-
-  if (!visible) return null;
 
   // Font size multiplier
   const fontMultiplier = textSize === 'xlarge' ? 1.35 : textSize === 'large' ? 1.18 : 1.0;
@@ -41,26 +44,47 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
   };
 
   const getTextSizeLabel = () => {
-    if (textSize === 'normal') return 'A Metin';
+    if (textSize === 'normal') return 'A Punto';
     if (textSize === 'large') return 'A+ Büyük';
-    return 'A++ Çok Büyük';
+    return 'A++ İri';
   };
 
-  // Color theme based on High Contrast
+  // Color theme based on Day/Night (isDarkMode)
   const theme = {
-    bg: highContrast ? '#000000' : '#F8FAFC',
-    cardBg: highContrast ? '#111827' : '#FFFFFF',
-    textMain: highContrast ? '#FFFFFF' : '#0F172A',
-    textSub: highContrast ? '#E5E7EB' : '#475569',
-    textMuted: highContrast ? '#9CA3AF' : '#64748B',
-    border: highContrast ? '#374151' : '#E2E8F0',
-    primary: highContrast ? '#FBBF24' : '#DC2626',
-    dangerBg: highContrast ? '#450A0A' : '#FEF2F2',
-    dangerBorder: highContrast ? '#EF4444' : '#FCA5A5',
-    dangerText: highContrast ? '#FCA5A5' : '#991B1B',
-    highlightText: highContrast ? '#FDE047' : '#DC2626',
-    badgeBg: highContrast ? '#1F2937' : '#F1F5F9',
+    bg: isDarkMode ? '#0B0F19' : '#F8FAFC',
+    cardBg: isDarkMode ? '#151D2F' : '#FFFFFF',
+    textMain: isDarkMode ? '#F8FAFC' : '#0F172A',
+    textSub: isDarkMode ? '#CBD5E1' : '#475569',
+    textMuted: isDarkMode ? '#94A3B8' : '#64748B',
+    border: isDarkMode ? '#1E293B' : '#E2E8F0',
+    primary: isDarkMode ? '#FBBF24' : '#DC2626',
+    dangerBg: isDarkMode ? '#3B0D0D' : '#FEF2F2',
+    dangerBorder: isDarkMode ? '#EF4444' : '#FCA5A5',
+    dangerText: isDarkMode ? '#FCA5A5' : '#991B1B',
+    highlightText: isDarkMode ? '#FDE047' : '#DC2626',
+    badgeBg: isDarkMode ? '#1E293B' : '#F1F5F9',
+    searchBg: isDarkMode ? '#151D2F' : '#FFFFFF',
+    searchInput: isDarkMode ? '#FFFFFF' : '#0F172A',
   };
+
+  // Filter situations based on search query
+  const filteredSituations = useMemo(() => {
+    if (!searchQuery.trim()) return SITUATIONS;
+    const q = normalizeForSearch(searchQuery);
+
+    return SITUATIONS.filter((sit) => {
+      const titleMatch = normalizeForSearch(sit.title).includes(q);
+      const subMatch = normalizeForSearch(sit.subtitle).includes(q);
+      const alertMatch = sit.criticalAlert ? normalizeForSearch(sit.criticalAlert).includes(q) : false;
+      const stepsMatch = sit.steps.some(
+        (s) => normalizeForSearch(s.title).includes(q) || normalizeForSearch(s.description).includes(q)
+      );
+      const rolesMatch = (sit.citizenRole || []).some((r) => normalizeForSearch(r).includes(q));
+      return titleMatch || subMatch || alertMatch || stepsMatch || rolesMatch;
+    });
+  }, [searchQuery]);
+
+  if (!visible) return null;
 
   return (
     <Modal
@@ -81,7 +105,7 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
             >
               <Ionicons name="arrow-back" size={20} color={theme.textMain} />
               <Text style={[styles.headerNavButtonText, { color: theme.textMain }]}>
-                Durum Değiştir
+                Geri
               </Text>
             </Pressable>
           ) : (
@@ -97,31 +121,33 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
             </Pressable>
           )}
 
-          {/* Accessibility Quick Controls (Text Size + High Contrast) */}
+          {/* Accessibility Quick Controls (Punto Toggle + Gece/Gündüz Modu) */}
           <View style={styles.accessibilityControls}>
-            {/* Text Size Toggle */}
+            {/* Punto (Text Size) Toggle */}
             <Pressable
               style={[styles.accButton, { backgroundColor: theme.badgeBg, borderColor: theme.border }]}
               onPress={cycleTextSize}
+              accessibilityLabel="Yazı Boyutu"
             >
               <Text style={[styles.accButtonText, { color: theme.textMain }]}>
                 {getTextSizeLabel()}
               </Text>
             </Pressable>
 
-            {/* High Contrast Toggle */}
+            {/* Gece / Gündüz Toggle */}
             <Pressable
               style={[
                 styles.accButton,
-                highContrast && styles.accButtonActive,
-                { backgroundColor: highContrast ? '#F59E0B' : theme.badgeBg, borderColor: theme.border },
+                isDarkMode && styles.accButtonActive,
+                { backgroundColor: isDarkMode ? '#1E293B' : theme.badgeBg, borderColor: theme.border },
               ]}
-              onPress={() => setHighContrast(!highContrast)}
+              onPress={() => setIsDarkMode(!isDarkMode)}
+              accessibilityLabel="Gece Gündüz Modu"
             >
               <Ionicons
-                name="contrast"
+                name={isDarkMode ? 'moon' : 'sunny'}
                 size={16}
-                color={highContrast ? '#000000' : theme.textMain}
+                color={isDarkMode ? '#FBBF24' : '#F59E0B'}
               />
             </Pressable>
 
@@ -136,154 +162,185 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
           </View>
         </View>
 
-        {/* SCREEN 1: SITUATION SELECTION ("Neredeyim ve ne yaşıyorum?") */}
+        {/* SCREEN 1: SITUATION SELECTION WITH SEARCH BAR */}
         {!selectedSituation ? (
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.landingContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Calm, low-text introductory banner */}
-            <View style={styles.landingHeader}>
-              <View style={styles.offlinePill}>
-                <Ionicons name="shield-checkmark" size={13} color="#16A34A" />
-                <Text style={styles.offlinePillText}>%100 ÇEVRİMDIŞI REHBER</Text>
-              </View>
-              <Text
-                style={[
-                  styles.landingQuestion,
-                  { color: theme.textMain, fontSize: 22 * fontMultiplier },
-                ]}
-              >
-                Neredeyim ve ne yaşıyorum?
-              </Text>
-              <Text
-                style={[
-                  styles.landingSubtitle,
-                  { color: theme.textSub, fontSize: 13 * fontMultiplier },
-                ]}
-              >
-                Bulunduğunuz duruma dokunarak adım adım hayati yönergelere ulaşın:
-              </Text>
+          <View style={styles.flexOne}>
+            {/* Search Bar */}
+            <View style={[styles.searchContainer, { backgroundColor: theme.searchBg, borderColor: theme.border }]}>
+              <Ionicons name="search" size={18} color="#94A3B8" />
+              <TextInput
+                style={[styles.searchInput, { color: theme.searchInput, fontSize: 13 * fontMultiplier }]}
+                placeholder="Konu veya belirti ara (ör: turnike, kırık, crush, enkaz)..."
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery('')} style={styles.clearSearchBtn}>
+                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                </Pressable>
+              )}
             </View>
 
-            {/* Situation Selection Cards */}
-            <View style={styles.situationsGrid}>
-              {SITUATIONS.map((sit) => {
-                const isCrush = sit.isCrushSyndromeSpecial;
-                return (
-                  <Pressable
-                    key={sit.id}
-                    style={({ pressed }) => [
-                      styles.situationCard,
-                      {
-                        backgroundColor: isCrush
-                          ? highContrast ? '#450A0A' : '#FEF2F2'
-                          : theme.cardBg,
-                        borderColor: isCrush
-                          ? '#EF4444'
-                          : theme.border,
-                      },
-                      pressed && styles.cardPressed,
-                    ]}
-                    onPress={() => setSelectedSituation(sit)}
-                  >
-                    <View style={styles.cardHeaderRow}>
-                      <View
-                        style={[
-                          styles.cardIconBox,
-                          {
-                            backgroundColor: isCrush
-                              ? '#DC2626'
-                              : highContrast ? '#374151' : '#FEE2E2',
-                          },
-                        ]}
-                      >
-                        <Ionicons
-                          name={sit.icon as any}
-                          size={22}
-                          color={isCrush ? '#FFFFFF' : '#DC2626'}
-                        />
-                      </View>
-                      <View style={styles.cardBadgeBox}>
-                        <Text
-                          style={[
-                            styles.cardBadgeText,
-                            {
-                              color: isCrush ? '#DC2626' : theme.textMuted,
-                              backgroundColor: isCrush
-                                ? highContrast ? '#1F2937' : '#FEE2E2'
-                                : theme.badgeBg,
-                            },
-                          ]}
-                        >
-                          {sit.badge}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text
-                      style={[
-                        styles.situationTitle,
-                        {
-                          color: isCrush ? (highContrast ? '#FCA5A5' : '#991B1B') : theme.textMain,
-                          fontSize: 16 * fontMultiplier,
-                        },
-                      ]}
-                    >
-                      {sit.title}
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.situationSubtitle,
-                        {
-                          color: isCrush ? (highContrast ? '#FEE2E2' : '#7F1D1D') : theme.textSub,
-                          fontSize: 12 * fontMultiplier,
-                        },
-                      ]}
-                    >
-                      {sit.subtitle}
-                    </Text>
-
-                    <View style={styles.cardFooterRow}>
-                      <Text
-                        style={[
-                          styles.viewGuideText,
-                          { color: isCrush ? '#DC2626' : '#2563EB', fontSize: 12 * fontMultiplier },
-                        ]}
-                      >
-                        Yönergeyi Gör →
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Güvenilirlik ve Tıbbi Kaynak Göstergeleri */}
-            <View style={[styles.trustBox, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-              <View style={styles.trustTitleRow}>
-                <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
-                <Text style={[styles.trustTitle, { color: theme.textMain, fontSize: 13 * fontMultiplier }]}>
-                  {GUIDE_METADATA.reviewStatus}
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.landingContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Offline Status Badge */}
+              <View style={styles.offlinePillRow}>
+                <View style={styles.offlinePill}>
+                  <Ionicons name="shield-checkmark" size={13} color="#16A34A" />
+                  <Text style={styles.offlinePillText}>%100 ÇEVRİMDIŞI İLK YARDIM</Text>
+                </View>
+                <Text style={[styles.guideCountText, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
+                  {filteredSituations.length} Konu
                 </Text>
               </View>
 
-              <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
-                • Denetleyen: {GUIDE_METADATA.medicalReviewer}
-              </Text>
-              <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
-                • Kaynaklar: {GUIDE_METADATA.sources.join(', ')}
-              </Text>
-              <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
-                • Sürüm: {GUIDE_METADATA.version} ({GUIDE_METADATA.lastUpdated})
-              </Text>
-              <Text style={[styles.trustDetail, { color: '#16A34A', fontSize: 11 * fontMultiplier, fontWeight: '700', marginTop: 4 }]}>
-                • {GUIDE_METADATA.offlineNote}
-              </Text>
-            </View>
-          </ScrollView>
+              {/* No search results view */}
+              {filteredSituations.length === 0 ? (
+                <View style={styles.emptySearchBox}>
+                  <Ionicons name="search-outline" size={40} color="#94A3B8" />
+                  <Text style={[styles.emptySearchTitle, { color: theme.textMain }]}>
+                    Eşleşen ilk yardım konusu bulunamadı
+                  </Text>
+                  <Text style={[styles.emptySearchSub, { color: theme.textMuted }]}>
+                    "{searchQuery}" araması için farklı bir arama terimi deneyin.
+                  </Text>
+                  <Pressable style={styles.clearFilterBtn} onPress={() => setSearchQuery('')}>
+                    <Text style={styles.clearFilterText}>Aramayı Temizle</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                /* Situation Selection Cards with Visual Elements */
+                <View style={styles.situationsGrid}>
+                  {filteredSituations.map((sit) => {
+                    const isCrush = sit.isCrushSyndromeSpecial;
+                    return (
+                      <Pressable
+                        key={sit.id}
+                        style={({ pressed }) => [
+                          styles.situationCard,
+                          {
+                            backgroundColor: isCrush
+                              ? isDarkMode ? '#2D0A0A' : '#FEF2F2'
+                              : theme.cardBg,
+                            borderColor: isCrush
+                              ? '#EF4444'
+                              : theme.border,
+                          },
+                          pressed && styles.cardPressed,
+                        ]}
+                        onPress={() => setSelectedSituation(sit)}
+                      >
+                        <View style={styles.cardHeaderRow}>
+                          <View
+                            style={[
+                              styles.cardIconBox,
+                              {
+                                backgroundColor: isCrush
+                                  ? '#DC2626'
+                                  : isDarkMode ? '#1E293B' : '#FEE2E2',
+                              },
+                            ]}
+                          >
+                            <Ionicons
+                              name={sit.icon as any}
+                              size={22}
+                              color={isCrush ? '#FFFFFF' : '#DC2626'}
+                            />
+                          </View>
+                          <View style={styles.cardBadgeBox}>
+                            <Text
+                              style={[
+                                styles.cardBadgeText,
+                                {
+                                  color: isCrush ? '#DC2626' : theme.textMuted,
+                                  backgroundColor: isCrush
+                                    ? isDarkMode ? '#1F2937' : '#FEE2E2'
+                                    : theme.badgeBg,
+                                },
+                              ]}
+                            >
+                              {sit.badge}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <Text
+                          style={[
+                            styles.situationTitle,
+                            {
+                              color: isCrush ? (isDarkMode ? '#FCA5A5' : '#991B1B') : theme.textMain,
+                              fontSize: 16 * fontMultiplier,
+                            },
+                          ]}
+                        >
+                          {sit.title}
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.situationSubtitle,
+                            {
+                              color: isCrush ? (isDarkMode ? '#FEE2E2' : '#7F1D1D') : theme.textSub,
+                              fontSize: 12 * fontMultiplier,
+                            },
+                          ]}
+                        >
+                          {sit.subtitle}
+                        </Text>
+
+                        {/* Inline Visual Diagram Preview */}
+                        <FirstAidIllustration
+                          situationId={sit.id}
+                          isHighContrast={isDarkMode}
+                          fontMultiplier={fontMultiplier}
+                        />
+
+                        <View style={styles.cardFooterRow}>
+                          <Text
+                            style={[
+                              styles.viewGuideText,
+                              { color: isCrush ? '#DC2626' : '#2563EB', fontSize: 12 * fontMultiplier },
+                            ]}
+                          >
+                            Adım Adım Rehberi Aç →
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* Güvenilirlik ve Tıbbi Kaynak Göstergeleri */}
+              <View style={[styles.trustBox, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+                <View style={styles.trustTitleRow}>
+                  <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
+                  <Text style={[styles.trustTitle, { color: theme.textMain, fontSize: 13 * fontMultiplier }]}>
+                    {GUIDE_METADATA.reviewStatus}
+                  </Text>
+                </View>
+
+                <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
+                  • Denetleyen: {GUIDE_METADATA.medicalReviewer}
+                </Text>
+                <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
+                  • Kaynaklar: {GUIDE_METADATA.sources.join(', ')}
+                </Text>
+                <Text style={[styles.trustDetail, { color: theme.textMuted, fontSize: 11 * fontMultiplier }]}>
+                  • Sürüm: {GUIDE_METADATA.version} ({GUIDE_METADATA.lastUpdated})
+                </Text>
+                <Text style={[styles.trustDetail, { color: '#16A34A', fontSize: 11 * fontMultiplier, fontWeight: '700', marginTop: 4 }]}>
+                  • {GUIDE_METADATA.offlineNote}
+                </Text>
+              </View>
+            </ScrollView>
+          </View>
         ) : (
           /* SCREEN 2: SINGLE TASK / DETAIL SCREEN ("Tek ekran, tek görev") */
           <ScrollView
@@ -310,6 +367,13 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
                 {selectedSituation.title}
               </Text>
             </View>
+
+            {/* Visual Diagram / Infographic for this situation */}
+            <FirstAidIllustration
+              situationId={selectedSituation.id}
+              isHighContrast={isDarkMode}
+              fontMultiplier={fontMultiplier}
+            />
 
             {/* CRUSH SENDROMU ÖZEL TASARIMI (ASLA KENDİN YAP REHBERİ DEĞİLDİR) */}
             {selectedSituation.isCrushSyndromeSpecial ? (
@@ -557,7 +621,7 @@ export const FirstAidGuideModal: React.FC<Props> = ({ visible, onClose }) => {
               >
                 <Ionicons name="arrow-back" size={18} color={theme.textMain} />
                 <Text style={[styles.bottomBackButtonText, { color: theme.textMain }]}>
-                  Başka Bir Durum Seç
+                  Geri Dön
                 </Text>
               </Pressable>
 
@@ -580,6 +644,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
+  },
+  flexOne: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -607,15 +674,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   accButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   accButtonActive: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1E293B',
   },
   accButtonText: {
     fontSize: 11,
@@ -624,6 +691,25 @@ const styles = StyleSheet.create({
   closeIconButton: {
     padding: 6,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 0,
+  },
+  clearSearchBtn: {
+    padding: 4,
+  },
   scrollView: {
     flex: 1,
   },
@@ -631,19 +717,20 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-  landingHeader: {
-    marginBottom: 16,
+  offlinePillRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   offlinePill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#DCFCE7',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 6,
-    alignSelf: 'flex-start',
     gap: 4,
-    marginBottom: 8,
   },
   offlinePillText: {
     fontSize: 10,
@@ -651,13 +738,8 @@ const styles = StyleSheet.create({
     color: '#16A34A',
     letterSpacing: 0.5,
   },
-  landingQuestion: {
-    fontWeight: '900',
-    letterSpacing: -0.4,
-    marginBottom: 6,
-  },
-  landingSubtitle: {
-    lineHeight: 18,
+  guideCountText: {
+    fontWeight: '600',
   },
   situationsGrid: {
     gap: 12,
@@ -669,7 +751,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cardPressed: {
-    opacity: 0.85,
+    opacity: 0.88,
     transform: [{ scale: 0.99 }],
   },
   cardHeaderRow: {
@@ -702,12 +784,43 @@ const styles = StyleSheet.create({
   },
   situationSubtitle: {
     lineHeight: 17,
-    marginBottom: 10,
+    marginBottom: 6,
   },
   cardFooterRow: {
     alignItems: 'flex-end',
+    marginTop: 4,
   },
   viewGuideText: {
+    fontWeight: '700',
+  },
+  emptySearchBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 36,
+    paddingHorizontal: 20,
+  },
+  emptySearchTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  emptySearchSub: {
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  clearFilterBtn: {
+    marginTop: 14,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  clearFilterText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
   trustBox: {
@@ -733,7 +846,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   detailTitleSection: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   detailBadgeRow: {
     flexDirection: 'row',
