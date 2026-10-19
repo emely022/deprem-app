@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEarthquakes } from '../context/EarthquakeContext';
+import { useDrawer } from '../context/DrawerContext';
 
 export const HeaderBar: React.FC = () => {
   const {
@@ -17,14 +18,28 @@ export const HeaderBar: React.FC = () => {
     filter,
     setFilter,
   } = useEarthquakes();
+  const { openDrawer } = useDrawer();
 
   return (
     <View style={styles.container}>
-      {/* Top row: App title + Refresh button */}
+      {/* Top row: Menu button + App title + Refresh button */}
       <View style={styles.topRow}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleIcon}>🌍</Text>
-          <Text style={styles.appTitle}>Deprem Takibi</Text>
+        <View style={styles.leftContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && styles.menuButtonPressed,
+            ]}
+            onPress={openDrawer}
+            accessibilityLabel="Menüyü Aç"
+          >
+            <Ionicons name="menu" size={24} color="#0F172A" />
+          </Pressable>
+
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleIcon}>🌍</Text>
+            <Text style={styles.appTitle}>Deprem Takibi</Text>
+          </View>
         </View>
 
         <View style={styles.rightActions}>
@@ -156,6 +171,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuButtonPressed: {
+    backgroundColor: '#E2E8F0',
   },
   titleContainer: {
     flexDirection: 'row',

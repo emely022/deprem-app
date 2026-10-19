@@ -6,7 +6,9 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useEarthquakes } from '../../context/EarthquakeContext';
+import { useDrawer } from '../../context/DrawerContext';
 import { EarthquakeMap } from '../../components/EarthquakeMap';
 import { EarthquakeDetailModal } from '../../components/EarthquakeDetailModal';
 import { Earthquake } from '../../types/earthquake';
@@ -19,6 +21,7 @@ export default function MapScreen() {
     filter,
     setFilter,
   } = useEarthquakes();
+  const { openDrawer } = useDrawer();
 
   const [modalEarthquake, setModalEarthquake] = useState<Earthquake | null>(null);
 
@@ -31,6 +34,16 @@ export default function MapScreen() {
       {/* Map Header */}
       <View style={styles.header}>
         <View style={styles.titleContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && styles.menuButtonPressed,
+            ]}
+            onPress={openDrawer}
+            accessibilityLabel="Menüyü Aç"
+          >
+            <Ionicons name="menu" size={22} color="#0F172A" />
+          </Pressable>
           <Text style={styles.titleIcon}>🗺️</Text>
           <Text style={styles.headerTitle}>Deprem Haritası</Text>
         </View>
@@ -99,6 +112,18 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  menuButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  menuButtonPressed: {
+    backgroundColor: '#E2E8F0',
   },
   titleIcon: {
     fontSize: 24,
